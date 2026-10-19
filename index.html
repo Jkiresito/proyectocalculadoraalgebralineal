@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadoras de Álgebra Lineal</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --muted: #64748b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            width: 100%; max-width: 750px;
+            background: var(--card); padding: 30px;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        header { text-align: center; margin-bottom: 26px; }
+        .welcome { color: var(--muted); font-size: 1rem; margin: 0 0 6px; }
+        h1 { color: var(--primary); margin: 0 0 10px; font-size: 1.9rem; line-height: 1.2; }
+        .lead { color: var(--muted); max-width: 56ch; margin: 0 auto; line-height: 1.6; }
+
+        .about {
+            background: #f1f5f9; border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px; margin-bottom: 26px;
+        }
+        .about h2, .team h2 { font-size: 1.15rem; color: var(--primary); margin: 0 0 12px; }
+        .about p { margin: 0 0 14px; line-height: 1.6; }
+        .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .feat {
+            background: #fff; border-left: 4px solid var(--primary);
+            border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+            border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: .92rem; line-height: 1.45;
+        }
+        .feat b { display: block; color: var(--primary); margin-bottom: 2px; }
+
+        .team h2 { text-align: center; }
+        .team .sub { text-align: center; color: var(--muted); margin: -6px 0 18px; font-size: .95rem; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .member {
+            background: #fff; border-left: 4px solid var(--primary);
+            border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+            border-radius: 0 8px 8px 0; padding: 18px 20px;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .who { display: flex; align-items: center; gap: 14px; }
+        .avatar {
+            width: 48px; height: 48px; border-radius: 50%; flex: none;
+            background: #dbeafe; color: var(--primary-hover);
+            display: grid; place-items: center; font-weight: 700; font-size: 1.1rem;
+        }
+        .name { font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+        .role { color: var(--muted); font-size: .88rem; }
+        .btn {
+            display: block; text-align: center; text-decoration: none;
+            background: var(--primary); color: #fff; font-weight: 600; font-size: 1rem;
+            padding: 12px; border-radius: 6px; transition: background 0.2s;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+
+        footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 26px; }
+
+        @media (max-width: 640px) {
+            .container { padding: 20px; }
+            .feats, .grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <p class="welcome">¡Bienvenido!</p>
+            <h1>Calculadoras de Álgebra Lineal</h1>
+            <p class="lead">Un proyecto en equipo donde cada integrante presenta su propia calculadora, pensada para resolver y también para enseñar cómo se llega al resultado</p>
+        </header>
+
+        <section class="about" aria-labelledby="sobre">
+            <h2 id="sobre">¿De qué trata el proyecto?</h2>
+            <p>Reunimos varias calculadoras de álgebra lineal en una sola colección, cada una vive en su propia página y comparte el mismo diseño, para que sea fácil moverse entre ellas</p>
+            <div class="feats">
+                <div class="feat"><b>Paso a paso</b>Cada resultado muestra el procedimiento completo</div>
+                <div class="feat"><b>Números reales</b>Funcionan con enteros, negativos y fracciones</div>
+                <div class="feat"><b>Una por integrante</b>Elige un nombre para abrir su calculadora</div>
+            </div>
+        </section>
+
+        <section class="team" aria-labelledby="equipo">
+            <h2 id="equipo">Nuestro equipo</h2>
+            <p class="sub">Elige un integrante para ver su calculadora</p>
+
+            <div class="grid">
+                <article class="member">
+                    <div class="who">
+                        <div class="avatar" aria-hidden="true">EP</div>
+                        <div><div class="name">Erick Peralta</div><div class="role">Integrante</div></div>
+                    </div>
+                    <a class="btn" href="Erick.html">Ver calculadora</a>
+                </article>
+
+                <article class="member">
+                    <div class="who">
+                        <div class="avatar" aria-hidden="true">ML</div>
+                        <div><div class="name">Meylin Lopez</div><div class="role">Integrante</div></div>
+                    </div>
+                    <a class="btn" href="Meylin.html">Ver calculadora</a>
+                </article>
+
+                <article class="member">
+                    <div class="who">
+                        <div class="avatar" aria-hidden="true">JG</div>
+                        <div><div class="name">Jeshua Gomez</div><div class="role">Integrante</div></div>
+                    </div>
+                    <a class="btn" href="Jeshua.html">Ver calculadora</a>
+                </article>
+
+                <article class="member">
+                    <div class="who">
+                        <div class="avatar" aria-hidden="true">JA</div>
+                        <div><div class="name">Jonathan Adonay</div><div class="role">Integrante</div></div>
+                    </div>
+                    <a class="btn" href="Adonay.html">Ver calculadora</a>
+                </article>
+            </div>
+        </section>
+
+        <footer>Proyecto de Álgebra Lineal · Erick Peralta, Meylin Lopez, Jeshua Gomez y Jonathan Adonay</footer>
+    </div>
+
+</body>
+</html>

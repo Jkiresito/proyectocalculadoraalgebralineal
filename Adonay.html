@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Conjuntos</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --muted: #64748b;
+            --accent: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            width: 100%; max-width: 750px;
+            background: var(--card); padding: 30px;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 { text-align: center; color: var(--primary); margin: 0 0 5px; }
+        .subtitle { text-align: center; color: var(--muted); margin-bottom: 25px; }
+        .inputs-box {
+            background: #f1f5f9; padding: 20px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .row { display: flex; align-items: center; gap: 8px; }
+        .row .nm { font-weight: 700; font-size: 1.1rem; min-width: 2.6em; text-align: right; }
+        .row input { flex: 1; min-width: 0; }
+        .row .br { font-size: 1.3rem; color: var(--muted); }
+        input[type="text"] {
+            padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;
+        }
+        .hint { color: var(--muted); font-size: .86rem; margin: 0; text-align: center; }
+        .tools { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        button {
+            background: var(--primary); color: white; border: none;
+            padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 6px;
+            cursor: pointer; width: 100%; transition: background 0.2s;
+        }
+        button:hover { background: var(--primary-hover); }
+        button:focus-visible, input:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+        .btn-sec { background: #e2e8f0; color: var(--text); width: auto; padding: 8px 14px; font-size: .92rem; }
+        .btn-sec:hover { background: #cbd5e1; }
+        .results { margin-top: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .banner { background: #e0f2fe; padding: 12px; border-radius: 6px; text-align: center; font-size: 1.02rem; line-height: 1.7; }
+        .card {
+            background: #fff; border-left: 4px solid var(--primary);
+            padding: 15px 20px; border-radius: 0 8px 8px 0;
+            border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+        }
+        .card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.1rem; }
+        .steps {
+            font-family: monospace; background: #f8fafc; padding: 10px;
+            border-radius: 6px; white-space: pre-line; font-size: 0.92rem; line-height: 1.5;
+            overflow-x: auto;
+        }
+        .res { font-weight: 700; }
+        .tbl { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: .92rem; text-align: center; }
+        th, td { border: 1px solid #e2e8f0; padding: 6px 8px; }
+        th { background: #f1f5f9; }
+        td.y { background: #dbeafe; font-weight: 700; color: var(--primary-hover); }
+        svg { width: 100%; max-width: 460px; display: block; margin: 0 auto; }
+        .legend { text-align: center; color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Calculadora de Conjuntos</h1>
+        <div class="subtitle">Unión, intersección, restas y suma con el procedimiento completo</div>
+
+        <div class="inputs-box">
+            <div class="row"><span class="nm">A =</span><span class="br">{</span>
+                <input type="text" id="a" value="1, 2, 3, 4, 5" autocomplete="off" aria-label="Elementos del conjunto A"><span class="br">}</span></div>
+            <div class="row"><span class="nm">B =</span><span class="br">{</span>
+                <input type="text" id="b" value="4, 5, 6, 7, 8" autocomplete="off" aria-label="Elementos del conjunto B"><span class="br">}</span></div>
+            <p class="hint">Separa los elementos con comas o espacios. Sirven números (también negativos o decimales con punto) y letras. Los repetidos se eliminan solos.</p>
+            <div class="tools">
+                <button type="button" class="btn-sec" id="ejemplo">Cargar ejemplo</button>
+                <button type="button" class="btn-sec" id="swap">Intercambiar A y B</button>
+            </div>
+        </div>
+
+        <button type="button" id="calc">Calcular operaciones</button>
+
+        <div id="resultados" class="results"></div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        const isNum = x => /^-?\d+(\.\d+)?$/.test(x);
+        const cmp = (a, b) => {
+            const na = isNum(a), nb = isNum(b);
+            if (na && nb) return a - b;
+            if (na) return -1;
+            if (nb) return 1;
+            return a.localeCompare(b, 'es');
+        };
+        const norm = arr => [...new Set(arr)].sort(cmp);
+
+        function leer(txt) {
+            return txt.replace(/[{}\[\]()]/g, ' ').replace(/\u2212/g, '-').split(/[,;\s]+/).filter(Boolean)
+                .map(x => /^[+-]?\d+(\.\d+)?$/.test(x) ? String(parseFloat(x)) : x);
+        }
+
+        const fmt = s => s.length ? '{ ' + s.map(esc).join(', ') + ' }' : '\u2205';
+
+        function venn(soloA, inter, soloB, nA, nB) {
+            const cut = x => x.length > 6 ? x.slice(0, 5) + '\u2026' : x;
+            const short = s => s.length ? s.slice(0, 3).map(cut).map(esc).join(', ') + (s.length > 3 ? ' \u2026' : '') : '\u2205';
+            const t = (x, s, n) =>
+                '<text x="' + x + '" y="135" font-size="12.5" text-anchor="middle" fill="#0f172a">' + short(s) + '</text>' +
+                '<text x="' + x + '" y="154" font-size="11" text-anchor="middle" fill="#64748b">(' + n + ')</text>';
+            return '<svg viewBox="0 0 420 270" role="img" aria-label="Diagrama de Venn de A y B">' +
+                '<circle cx="160" cy="135" r="100" fill="#2563eb" fill-opacity=".22" stroke="#2563eb" stroke-width="2"/>' +
+                '<circle cx="260" cy="135" r="100" fill="#f59e0b" fill-opacity=".25" stroke="#f59e0b" stroke-width="2"/>' +
+                '<text x="95" y="38" font-size="18" font-weight="700" fill="#1d4ed8">A</text>' +
+                '<text x="325" y="38" font-size="18" font-weight="700" fill="#b45309">B</text>' +
+                t(108, soloA, soloA.length) + t(210, inter, inter.length) + t(312, soloB, soloB.length) +
+                '<text x="108" y="256" font-size="11" text-anchor="middle" fill="#64748b">solo A</text>' +
+                '<text x="210" y="256" font-size="11" text-anchor="middle" fill="#64748b">A \u2229 B</text>' +
+                '<text x="312" y="256" font-size="11" text-anchor="middle" fill="#64748b">solo B</text></svg>';
+        }
+
+        function calcular() {
+            const rawA = leer($('a').value), rawB = leer($('b').value);
+            const A = norm(rawA), B = norm(rawB);
+            const As = new Set(A), Bs = new Set(B);
+            const uni = norm([...A, ...B]);
+            const inter = A.filter(x => Bs.has(x));
+            const AmB = A.filter(x => !Bs.has(x));
+            const BmA = B.filter(x => !As.has(x));
+            const sim = norm([...AmB, ...BmA]);
+            const suma = [...A, ...B];
+
+            const notas = [];
+            if (rawA.length !== A.length) notas.push('A tenía repetidos: se eliminaron.');
+            if (rawB.length !== B.length) notas.push('B tenía repetidos: se eliminaron.');
+
+            const ops = [
+                ['Unión (A \u222A B)', 'Elementos que están en A, en B o en ambos, sin repetir.',
+                    'Partimos de A = ' + fmt(A) + ' y agregamos los de B que no estaban: ' + fmt(BmA) + '\nA \u222A B = ' + fmt(uni)],
+                ['Intersección (A \u2229 B)', 'Elementos que están en A y también en B.',
+                    'De A conservamos solo los que aparecen en B.\nA \u2229 B = ' + fmt(inter) + (inter.length || !A.length || !B.length ? '' : '\nComo no hay elementos comunes, A y B son disjuntos.')],
+                ['Resta (A \u2212 B)', 'Elementos de A que no están en B.',
+                    'De A quitamos los que también están en B: ' + fmt(inter) + '\nA \u2212 B = ' + fmt(AmB)],
+                ['Resta (B \u2212 A)', 'Elementos de B que no están en A.',
+                    'De B quitamos los que también están en A: ' + fmt(inter) + '\nB \u2212 A = ' + fmt(BmA)],
+                ['Diferencia simétrica (A \u25B3 B)', 'Elementos que están en uno solo de los dos conjuntos.',
+                    '(A \u2212 B) \u222A (B \u2212 A) = ' + fmt(AmB) + ' \u222A ' + fmt(BmA) + '\nA \u25B3 B = ' + fmt(sim)],
+                ['Suma (A + B)', 'Junta todos los elementos de A y luego los de B, sin quitar repetidos. No es una operación de conjuntos: es una concatenación.',
+                    'A + B = ' + fmt(suma) + '\nTotal de elementos: ' + A.length + ' + ' + B.length + ' = ' + suma.length]
+            ];
+
+            const sets = [['A\u222AB', uni], ['A\u2229B', inter], ['A\u2212B', AmB], ['B\u2212A', BmA]];
+            const filas = uni.slice(0, 60).map(x => {
+                const a = As.has(x), b = Bs.has(x), v = [a, b, a || b, a && b, a && !b, b && !a];
+                return '<tr><th>' + esc(x) + '</th>' + v.map(z => z ? '<td class="y">\u2713</td>' : '<td>\u2013</td>').join('') + '</tr>';
+            }).join('');
+
+            $('resultados').innerHTML =
+                '<div class="banner">|A| = <strong>' + A.length + '</strong> &nbsp;·&nbsp; |B| = <strong>' + B.length +
+                '</strong> &nbsp;·&nbsp; |A \u222A B| = <strong>' + uni.length + '</strong> &nbsp;·&nbsp; |A \u2229 B| = <strong>' + inter.length + '</strong><br>' +
+                'Verificación: |A \u222A B| = |A| + |B| \u2212 |A \u2229 B| = ' + A.length + ' + ' + B.length + ' \u2212 ' + inter.length + ' = <strong>' + (A.length + B.length - inter.length) + '</strong> \u2713' +
+                (notas.length ? '<br><span style="color:#64748b;font-size:.9rem">' + notas.join(' ') + '</span>' : '') + '</div>' +
+                '<div class="card"><h3>Conjuntos ordenados y sin repetidos</h3><div class="steps">A = ' + fmt(A) + '\nB = ' + fmt(B) + '</div></div>' +
+                '<div class="card"><h3>Diagrama de Venn</h3>' + venn(AmB, inter, BmA, A.length, B.length) +
+                '<p class="legend">Azul: A &nbsp;·&nbsp; Naranja: B &nbsp;·&nbsp; Zona central: A \u2229 B</p></div>' +
+                '<div class="card"><h3>Tabla de pertenencia (el procedimiento)</h3><div class="tbl"><table><tr><th>Elemento</th><th>\u2208 A</th><th>\u2208 B</th><th>A \u222A B</th><th>A \u2229 B</th><th>A \u2212 B</th><th>B \u2212 A</th></tr>' +
+                (filas || '<tr><td colspan="7">Sin elementos</td></tr>') + '</table></div>' +
+                (uni.length > 60 ? '<p class="legend">Se muestran los primeros 60 elementos.</p>' : '') +
+                '<p class="legend">Cada operación toma los elementos marcados con \u2713 en su columna.</p></div>' +
+                ops.map(o => '<div class="card"><h3>' + o[0] + '</h3><p style="margin:0 0 8px;color:#64748b;font-size:.92rem">' + o[1] + '</p><div class="steps">' + o[2] + '</div></div>').join('');
+        }
+
+        $('calc').addEventListener('click', calcular);
+        ['a', 'b'].forEach(id => {
+            $(id).addEventListener('input', calcular);
+            $(id).addEventListener('keydown', e => { if (e.key === 'Enter') calcular(); });
+        });
+        $('ejemplo').addEventListener('click', () => { $('a').value = '1, 2, 3, 4, 5'; $('b').value = '4, 5, 6, 7, 8'; calcular(); });
+        $('swap').addEventListener('click', () => { const t = $('a').value; $('a').value = $('b').value; $('b').value = t; calcular(); });
+
+        calcular();
+    </script>
+</body>
+</html>

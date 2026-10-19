@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gauss-Jordan 3x3</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --muted: #64748b;
+            --danger: #dc2626;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            width: 100%; max-width: 750px;
+            background: var(--card); padding: 30px;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 { text-align: center; color: var(--primary); margin: 0 0 5px; }
+        .subtitle { text-align: center; color: var(--muted); margin-bottom: 25px; }
+        .inputs-box {
+            background: #f1f5f9; padding: 20px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .row { display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .row .tag { font-weight: 700; color: var(--muted); min-width: 2em; }
+        input[type="text"] {
+            width: 70px; padding: 8px; text-align: center;
+            border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;
+        }
+        input.bad { border-color: var(--danger); background: #fef2f2; }
+        .hint { color: var(--muted); font-size: .86rem; margin: 0; text-align: center; }
+        .tools { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; }
+        button {
+            background: var(--primary); color: white; border: none;
+            padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 6px;
+            cursor: pointer; width: 100%; transition: background 0.2s;
+        }
+        button:hover { background: var(--primary-hover); }
+        button:focus-visible, input:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+        .btn-sec { background: #e2e8f0; color: var(--text); width: auto; padding: 8px 14px; font-size: .92rem; }
+        .btn-sec:hover { background: #cbd5e1; }
+        .btn-sec[aria-pressed="true"] { background: var(--primary); color: #fff; }
+        .results { margin-top: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .banner { background: #e0f2fe; padding: 12px; border-radius: 6px; text-align: center; font-size: 1.1rem; line-height: 1.8; }
+        .card {
+            background: #fff; border-left: 4px solid var(--primary);
+            padding: 15px 20px; border-radius: 0 8px 8px 0;
+            border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+        }
+        .card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.1rem; }
+        .steps {
+            font-family: monospace; background: #f8fafc; padding: 10px;
+            border-radius: 6px; white-space: pre-line; font-size: 0.92rem; line-height: 1.6;
+            overflow-x: auto;
+        }
+        .mx { overflow-x: auto; }
+        .mx table { border-collapse: collapse; margin: 10px auto 2px; }
+        .mx th { color: var(--muted); font-weight: 600; font-size: .85rem; padding-right: 10px; }
+        .mx td { padding: 6px 14px; text-align: center; min-width: 58px; font-size: 1.05rem; }
+        .mx td:nth-child(2) { border-left: 2px solid var(--text); }
+        .mx td:last-child { border-right: 2px solid var(--text); }
+        .mx td.aug { border-left: 1px dashed #94a3b8; }
+        .mx td.pv { background: #dbeafe; color: var(--primary-hover); font-weight: 700; }
+        .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.15; margin: 0 .1em; font-size: .88em; }
+        .fr i { font-style: normal; padding: 0 .2em; }
+        .fr i:first-child { border-bottom: 1.5px solid currentColor; }
+        .ok { color: #15803d; font-weight: 700; }
+        .error { color: var(--danger); font-weight: bold; text-align: center; margin-top: 10px; }
+        .warn { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sistemas 3x3 por Gauss-Jordan</h1>
+        <div class="subtitle">Resuelve ax + by + cz = d con el procedimiento completo, paso a paso</div>
+
+        <div class="inputs-box">
+            <div id="rows" style="display:flex;flex-direction:column;gap:12px"></div>
+            <p class="hint">Escribe cada coeficiente con su signo: enteros, decimales o fracciones como -3/4. Si un término no aparece, escribe 0.</p>
+            <div class="tools">
+                <button type="button" class="btn-sec" data-ex="2,1,-1,8,-3,-1,2,-11,-2,1,2,-3">Cargar ejemplo</button>
+                <button type="button" class="btn-sec" data-ex="1,1,1,3,2,2,2,6,1,2,3,4">Sin solución única</button>
+                <span class="hint" style="margin-left:8px">Mostrar:</span>
+                <button type="button" class="btn-sec" id="mFr" aria-pressed="true">Fracciones</button>
+                <button type="button" class="btn-sec" id="mDe" aria-pressed="false">Decimales</button>
+            </div>
+        </div>
+
+        <button type="button" id="calc">Resolver paso a paso</button>
+
+        <div id="error" class="error" role="alert"></div>
+        <div id="resultados" class="results"></div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; };
+
+        // Fracciones exactas: evitan errores de redondeo en el procedimiento
+        class F {
+            constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d) || 1; this.n = n / g; this.d = d / g; }
+            add(o) { return new F(this.n * o.d + o.n * this.d, this.d * o.d); }
+            sub(o) { return this.add(o.neg()); }
+            mul(o) { return new F(this.n * o.n, this.d * o.d); }
+            div(o) { return new F(this.n * o.d, this.d * o.n); }
+            neg() { return new F(-this.n, this.d); }
+            z() { return this.n === 0; }
+            one() { return this.n === 1 && this.d === 1; }
+            val() { return this.n / this.d; }
+        }
+        const decF = t => { const neg = t[0] === '-'; t = t.replace('-', ''); const [i, fr = ''] = t.split('.'); return new F((neg ? -1 : 1) * parseInt((i || '0') + fr, 10), Math.pow(10, fr.length)); };
+        function parse(s) {
+            s = s.replace(/\s+/g, '').replace(/[\u2212\u2013]/g, '-').replace(/,/g, '.').replace(/^\+/, '');
+            const m = s.match(/^(-?(?:\d+(?:\.\d+)?|\.\d+))(?:\/(-?(?:\d+(?:\.\d+)?|\.\d+)))?$/);
+            if (!m) return null;
+            const n = decF(m[1]);
+            if (m[2] === undefined) return n;
+            const d = decF(m[2]);
+            return d.z() ? null : n.div(d);
+        }
+
+        let dec = false;
+        const r4 = n => { n = Math.round(n * 1e4) / 1e4; return n === 0 ? 0 : n; };
+        const absH = f => f.d === 1 ? String(Math.abs(f.n)) : '<span class="fr"><i>' + Math.abs(f.n) + '</i><i>' + f.d + '</i></span>';
+        const H = f => (f.n < 0 ? '\u2212' : '') + absH(f);
+        const P = f => (f.n < 0 || f.d !== 1) ? '(' + H(f) + ')' : H(f);
+        const cell = f => dec ? String(r4(f.val())).replace('-', '\u2212') : H(f);
+        const approx = f => f.d === 1 ? '' : ' <small style="font-size:.75em;color:#64748b">\u2248 ' + String(r4(f.val())).replace('-', '\u2212') + '</small>';
+
+        const EX = [2, 1, -1, 8, -3, -1, 2, -11, -2, 1, 2, -3];
+        function renderInputs() {
+            const L = ['x', 'y', 'z'];
+            $('rows').innerHTML = [0, 1, 2].map(r =>
+                '<div class="row"><span class="tag">(' + (r + 1) + ')</span>' +
+                L.map((v, c) => '<input type="text" autocomplete="off" aria-label="Coeficiente de ' + v + ', ecuación ' + (r + 1) + '" data-r="' + r + '" data-c="' + c + '" value="' + EX[r * 4 + c] + '"><span>' + v + (c < 2 ? ' +' : '') + '</span>').join('') +
+                '<span>=</span><input type="text" autocomplete="off" aria-label="Término independiente, ecuación ' + (r + 1) + '" data-r="' + r + '" data-c="3" value="' + EX[r * 4 + 3] + '"></div>'
+            ).join('');
+        }
+
+        function matriz(M, hi) {
+            const rows = M.map((row, r) =>
+                '<tr><th>F' + (r + 1) + '</th>' + row.map((x, c) =>
+                    '<td class="' + (c === 3 ? 'aug ' : '') + (hi === r && hi === c ? 'pv' : '') + '">' + cell(x) + '</td>').join('') + '</tr>').join('');
+            return '<div class="mx"><table>' + rows + '</table></div>';
+        }
+
+        function gaussJordan(M0) {
+            const M = M0.map(r => r.slice()), steps = [], N = 3, names = ['x', 'y', 'z'];
+            for (let i = 0; i < N; i++) {
+                let best = i;
+                for (let k = i + 1; k < N; k++) if (Math.abs(M[k][i].val()) > Math.abs(M[best][i].val())) best = k;
+                if (M[best][i].z()) return { steps, ok: false, col: i };
+                const lines = [];
+                if (best !== i) {
+                    [M[i], M[best]] = [M[best], M[i]];
+                    lines.push('Intercambiamos F' + (i + 1) + ' \u2194 F' + (best + 1) + ': el pivote de mayor valor absoluto queda en la posición (' + (i + 1) + ', ' + (i + 1) + ').');
+                }
+                const piv = M[i][i];
+                if (piv.one()) lines.push('El pivote ya es 1: no hace falta normalizar F' + (i + 1) + '.');
+                else { M[i] = M[i].map(x => x.div(piv)); lines.push('Normalizar: F' + (i + 1) + ' \u2190 F' + (i + 1) + ' \u00F7 ' + P(piv)); }
+                for (let r = 0; r < N; r++) {
+                    if (r === i) continue;
+                    const fac = M[r][i];
+                    if (fac.z()) { lines.push('F' + (r + 1) + ' ya tiene 0 en la columna ' + (i + 1) + '.'); continue; }
+                    M[r] = M[r].map((x, j) => x.sub(fac.mul(M[i][j])));
+                    lines.push('Anular: F' + (r + 1) + ' \u2190 F' + (r + 1) + ' \u2212 ' + P(fac) + '\u00B7F' + (i + 1));
+                }
+                steps.push({ i, lines, M: M.map(r => r.slice()), name: names[i] });
+            }
+            return { steps, ok: true, M };
+        }
+
+        function calcular() {
+            const M0 = [[], [], []]; let bad = false;
+            document.querySelectorAll('#rows input').forEach(inp => {
+                const v = parse(inp.value);
+                inp.classList.toggle('bad', v === null);
+                if (v === null) bad = true; else M0[+inp.dataset.r][+inp.dataset.c] = v;
+            });
+            if (bad) {
+                $('error').textContent = 'Completa todas las casillas con números válidos (enteros, decimales o fracciones como -3/4).';
+                $('resultados').innerHTML = '';
+                return;
+            }
+            $('error').textContent = '';
+
+            const res = gaussJordan(M0);
+            let html = '<div class="card"><h3>Matriz inicial (aumentada)</h3>' + matriz(M0, -1) +
+                '<p class="hint">Las columnas son x, y, z y, a la derecha de la línea punteada, el término independiente d.</p></div>';
+
+            html += res.steps.map((s, k) =>
+                '<div class="card"><h3>Paso ' + (k + 1) + ': columna de ' + s.name + '</h3><div class="steps">' + s.lines.join('\n') + '</div>' +
+                '<p class="hint" style="margin-top:8px">Matriz después del paso ' + (k + 1) + ':</p>' + matriz(s.M, s.i) + '</div>').join('');
+
+            if (!res.ok) {
+                html = '<div class="warn"><strong>El sistema no tiene solución única (determinante 0).</strong><br>Puede ser incompatible o tener infinitas soluciones: en el paso ' + (res.col + 1) + ' no hay un pivote distinto de cero en la columna de ' + ['x', 'y', 'z'][res.col] + '.</div>' + html;
+            } else {
+                const [x, y, z] = res.M.map(r => r[3]);
+                const chk = (r, k) => {
+                    const [a, b, c, d] = M0[r], l = a.mul(x).add(b.mul(y)).add(c.mul(z));
+                    const ok = l.sub(d).z();
+                    return 'Ecuación ' + (r + 1) + ': ' + P(a) + '\u00B7' + P(x) + ' + ' + P(b) + '\u00B7' + P(y) + ' + ' + P(c) + '\u00B7' + P(z) + ' = ' + H(l) + (ok ? ' <span class="ok">\u2713</span>' : ' \u2717') + '  (debe dar ' + H(d) + ')';
+                };
+                html = '<div class="banner"><strong>Solución:</strong> x = <strong>' + H(x) + '</strong>' + approx(x) + ', &nbsp;y = <strong>' + H(y) + '</strong>' + approx(y) + ', &nbsp;z = <strong>' + H(z) + '</strong>' + approx(z) + '</div>' + html +
+                    '<div class="card"><h3>Resultado y comprobación</h3><div class="steps">La matriz quedó en forma identidad, así que la última columna es la solución.\n' +
+                    chk(0) + '\n' + chk(1) + '\n' + chk(2) + '</div></div>';
+            }
+            $('resultados').innerHTML = html;
+        }
+
+        renderInputs();
+        $('rows').addEventListener('input', calcular);
+        $('rows').addEventListener('keydown', e => { if (e.key === 'Enter') calcular(); });
+        $('calc').addEventListener('click', calcular);
+        document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => {
+            b.dataset.ex.split(',').forEach((v, i) => { document.querySelector('[data-r="' + Math.floor(i / 4) + '"][data-c="' + (i % 4) + '"]').value = v; });
+            calcular();
+        }));
+        [['mFr', false], ['mDe', true]].forEach(([id, v]) => $(id).addEventListener('click', () => {
+            dec = v; $('mFr').setAttribute('aria-pressed', !v); $('mDe').setAttribute('aria-pressed', v); calcular();
+        }));
+        calcular();
+    </script>
+</body>
+</html>

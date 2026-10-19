@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolutor de Sistemas 2x2 Corregido</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            width: 100%; max-width: 750px;
+            background: var(--card); padding: 30px;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
+        .inputs-box {
+            background: #f1f5f9; padding: 20px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .row { display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        input[type="number"] {
+            width: 75px; padding: 8px; text-align: center;
+            border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;
+        }
+        button {
+            background: var(--primary); color: white; border: none;
+            padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 6px;
+            cursor: pointer; width: 100%; transition: background 0.2s;
+        }
+        button:hover { background: var(--primary-hover); }
+        .results { margin-top: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .card {
+            background: #fff; border-left: 4px solid var(--primary);
+            padding: 15px 20px; border-radius: 0 8px 8px 0;
+            border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+        }
+        .card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.1rem; }
+        .steps {
+            font-family: monospace; background: #f8fafc; padding: 10px;
+            border-radius: 6px; white-space: pre-line; font-size: 0.92rem; line-height: 1.4;
+        }
+        .error { color: #dc2626; font-weight: bold; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sistema de Ecuaciones 2x2</h1>
+        <div class="subtitle">Introduce los coeficientes del sistema ax + by = c</div>
+
+        <div class="inputs-box">
+            <div class="row">
+                <input type="number" id="a1" value="2" step="any"><span>x +</span>
+                <input type="number" id="b1" value="3" step="any"><span>y =</span>
+                <input type="number" id="c1" value="13" step="any">
+            </div>
+            <div class="row">
+                <input type="number" id="a2" value="4" step="any"><span>x -</span>
+                <input type="number" id="b2" value="1" step="any"><span>y =</span>
+                <input type="number" id="c2" value="5" step="any">
+            </div>
+        </div>
+
+        <button onclick="resolver()">Resolver con precisión matemática</button>
+
+        <div id="error" class="error"></div>
+        <div id="resultados" class="results"></div>
+    </div>
+
+    <script>
+        // Función auxiliar para formatear signos de forma limpia (evita "+ -" o "--")
+        function formatTerm(num, varName = '') {
+            if (num === 0) return '';
+            let sign = num > 0 ? '+ ' : '- ';
+            let absVal = Math.abs(num);
+            let valStr = absVal === 1 && varName !== '' ? '' : absVal;
+            return `${sign}${valStr}${varName}`;
+        }
+
+        function resolver() {
+            let a1 = parseFloat(document.getElementById('a1').value);
+            let b1 = parseFloat(document.getElementById('b1').value);
+            let c1 = parseFloat(document.getElementById('c1').value);
+            let a2 = parseFloat(document.getElementById('a2').value);
+            let b2 = parseFloat(document.getElementById('b2').value);
+            let c2 = parseFloat(document.getElementById('c2').value);
+
+            let errorDiv = document.getElementById('error');
+            let resDiv = document.getElementById('resultados');
+            errorDiv.innerHTML = "";
+            resDiv.innerHTML = "";
+
+            if ([a1, b1, c1, a2, b2, c2].some(isNaN)) {
+                errorDiv.innerHTML = "Por favor, completa todos los campos con números válidos.";
+                return;
+            }
+
+            let det = (a1 * b2) - (a2 * b1);
+            if (det === 0) {
+                errorDiv.innerHTML = "El determinante es 0: el sistema no tiene solución única.";
+                return;
+            }
+
+            let x = ((c1 * b2) - (c2 * b1)) / det;
+            let y = ((a1 * c2) - (a2 * c1)) / det;
+
+            // Redondear a 4 decimales si no son enteros para limpieza visual
+            let fx = Number.isInteger(x) ? x : x.toFixed(4);
+            let fy = Number.isInteger(y) ? y : y.toFixed(4);
+
+            // Textos de pasos mejorados
+            let sSustitucion = `1. Despejar x de la Ecuación 1:
+   x = (${c1} - (${b1})y) / ${a1}
+
+2. Sustituir en la Ecuación 2 y resolver:
+   Valor resultante: y = ${fy}
+
+3. Sustituir y en el despeje para hallar x:
+   Valor resultante: x = ${fx}`;
+
+            let sIgualacion = `1. Despejar x de ambas ecuaciones:
+   Ecuación 1: x = (${c1} - (${b1})y) / ${a1}
+   Ecuación 2: x = (${c2} - (${b2})y) / ${a2}
+
+2. Igualar expresiones algebraicas y resolver para y:
+   y = ${fy}
+
+3. Hallar x sustituyendo y:
+   x = ${fx}`;
+
+            let m1 = a2;
+            let m2 = -a1;
+            let sReduccion = `1. Multiplicar ecuaciones para igualar coeficientes de x (cruzando factores):
+   Eq. 1 multiplicada por (${m1})
+   Eq. 2 multiplicada por (${m2})
+
+2. Sumar ambas ecuaciones para eliminar x y despejar y:
+   y = ${fy}
+
+3. Sustituir y en la primera ecuación para hallar x:
+   x = ${fx}`;
+
+            resDiv.innerHTML = `
+                <div style="background: #e0f2fe; padding: 12px; border-radius: 6px; text-align: center; font-size: 1.05rem;">
+                    <strong>Solución:</strong> x = <strong>${fx}</strong>, y = <strong>${fy}</strong>
+                </div>
+                <div class="card">
+                    <h3>Método de Sustitución</h3>
+                    <div class="steps">${sSustitucion}</div>
+                </div>
+                <div class="card">
+                    <h3>Método de Igualación</h3>
+                    <div class="steps">${sIgualacion}</div>
+                </div>
+                <div class="card">
+                    <h3>Método de Reducción (Eliminación)</h3>
+                    <div class="steps">${sReduccion}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
